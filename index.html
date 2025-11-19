@@ -461,4 +461,67 @@
                     let c = coins[i];
                     c.position.z += moveZ;
                     c.rotation.y += 0.1;
-                    if(c.positi
+                    if(c.position.z > -1 && c.position.z < 1) {
+                        if(Math.abs(c.position.x - player.position.x) < 1.0) {
+                            AudioSys.coin();
+                            coinCount++;
+                            scene.remove(c);
+                            coins.splice(i,1);
+                            
+                            // FX visuel pièce (scale up and fade)
+                            // Simplifié pour perf: juste remove
+                        }
+                    }
+                    if(c.position.z > 10) { scene.remove(c); coins.splice(i,1); }
+                }
+
+                // Decors
+                for(let i=decors.length-1; i>=0; i--) {
+                    decors[i].position.z += moveZ;
+                    if(decors[i].position.z > 10) { scene.remove(decors[i]); decors.splice(i,1); }
+                }
+
+                // Spawn infini
+                if(Math.random() < 0.05) spawnObject(-60); // Spawn un peu plus loin pour éviter pop visible
+
+                // Update UI
+                document.getElementById('score').innerText = Math.floor(score);
+                document.getElementById('coins').innerText = coinCount;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ================= INPUTS (ROBUSTES) =================
+        function moveLane(dir) {
+            if(state !== 'PLAY') return;
+            lane += dir;
+            if(lane < -1) lane = -1;
+            if(lane > 1) lane = 1;
+            targetX = lane * LANE_SIZE;
+            AudioSys.swoosh();
+        }
+
+        function onKey(e) {
+            if(e.key === 'ArrowLeft' || e.key === 'q') moveLane(-1);
+            if(e.key === 'ArrowRight' || e.key === 'd') moveLane(1);
+        }
+
+        let ts = 0;
+        function onTouchStart(e) { ts = e.changedTouches[0].clientX; }
+        function onTouchEnd(e) {
+            let te = e.changedTouches[0].clientX;
+            if(Math.abs(te - ts) > 30) {
+                if(te > ts) moveLane(1);
+                else moveLane(-1);
+            }
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
+</body>
+</html>
